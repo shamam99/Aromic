@@ -16,7 +16,7 @@ struct SignUpView: View {
 
     var body: some View {
         ZStack {
-            Image("background") // تأكد أن الصورة مضافة إلى Assets.xcassets
+            Image("BG") // تأكد أن الصورة مضافة إلى Assets.xcassets
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()

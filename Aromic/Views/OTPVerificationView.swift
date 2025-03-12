@@ -14,7 +14,7 @@ struct OTPVerificationView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Image("background") // استبدلها بصورة الخلفية الخاصة بك
+                Image("BG") // استبدلها بصورة الخلفية الخاصة بك
                     .resizable()
                     .scaledToFill()
                     .ignoresSafeArea()

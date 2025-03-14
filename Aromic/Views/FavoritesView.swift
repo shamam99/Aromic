@@ -9,76 +9,85 @@
 import SwiftUI
 
 struct FavoritesView: View {
-    @State private var favoritePerfumes: [FavoritePerfume] = [
-        FavoritePerfume(name: "BURBERRY HER", imageName: "burberry"),
-        FavoritePerfume(name: "GRIS DIOR", imageName: "gris_dior"),
-        FavoritePerfume(name: "GIORGIO ARMANI SI", imageName: "giorgio_armani"),
-        FavoritePerfume(name: "CHANEL N5", imageName: "chanel_n5")
-    ]
+    @Environment(\.presentationMode) var presentationMode
+    @State private var favoritePerfumes: [PerfumeModel] = []
     
     var body: some View {
-        ZStack {
-            // Background Image
-            Image("BG")
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
-            
-            VStack {
-                HStack {
-                    Button(action: {
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.leading, 25)
-                    .padding(.top, 10)
-
-                    Spacer()
-                }
-                .padding(.top, 80)
-
-                // Title
-                Text("Check Out Your\nFavorites Here")
-                    .font(.custom("SF Pro Display", size: 30).weight(.heavy))
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.leading, 25)
-                    .padding(.top, 20)
+        NavigationStack {
+            ZStack {
+                // Background Image
+                Image("BG")
+                    .resizable()
+                    .scaledToFill()
+                    .ignoresSafeArea()
                 
-                // Scrollable Grid of Favorite Perfumes
-                ScrollView {
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 20), count: 2), spacing: 20) {
-                        ForEach(favoritePerfumes, id: \.name) { perfume in
-                            FavoritePerfumeCard(perfume: perfume, removeAction: {
-                                removeFromFavorites(perfume: perfume)
-                            })
+                VStack {
+                    // Back Button
+                    HStack {
+                        Button(action: {
+                            presentationMode.wrappedValue.dismiss() // Navigate back correctly
+                        }) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundColor(.white)
                         }
+                        .padding(.leading, 25)
+                        .padding(.top, 10)
+
+                        Spacer()
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
+                    .padding(.top, 60)
+
+                    // Title
+                    Text("Check Out Your\nFavorites Here")
+                        .font(.custom("SF Pro Display", size: 30).weight(.heavy))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.leading, 25)
+                        .padding(.top, 20)
+                    
+                    // Scrollable Grid of Favorite Perfumes
+                    ScrollView {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 20), count: 2), spacing: 20) {
+                            ForEach(favoritePerfumes, id: \.id) { perfume in
+                                FavoritePerfumeCard(perfume: perfume, removeAction: {
+                                    removeFromFavorites(perfume: perfume)
+                                })
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 10)
+                    }
                 }
             }
+            .onAppear {
+                loadFavorites()
+            }
+            .navigationBarHidden(true)
         }
-        .navigationBarHidden(true)
+    }
+ 
+    // ✅ Fetch Favorites from CloudKit (FIXED)
+    private func loadFavorites() {
+        CloudKitManager.shared.fetchFavoritePerfumes(userID: UserDefaults.standard.string(forKey: "userID") ?? "") { perfumes in
+            self.favoritePerfumes = perfumes
+        }
     }
     
-    // Function to Remove Perfume from Favorites
-    private func removeFromFavorites(perfume: FavoritePerfume) {
-        favoritePerfumes.removeAll { $0.name == perfume.name }
+    // ✅ Remove Perfume from Favorites
+    private func removeFromFavorites(perfume: PerfumeModel) {
+        CloudKitManager.shared.removeFavoritePerfume(perfumeName: perfume.name) { success in
+            if success {
+                favoritePerfumes.removeAll { $0.id == perfume.id }
+            }
+        }
     }
 }
 
-struct FavoritePerfume {
-    let name: String
-    let imageName: String
-}
-
-// **Favorite Perfume Card**
+// ✅**Favorite Perfume Card**
 struct FavoritePerfumeCard: View {
-    let perfume: FavoritePerfume
+    let perfume: PerfumeModel
     let removeAction: () -> Void
     @State private var isFavorite: Bool = true
     
@@ -92,12 +101,12 @@ struct FavoritePerfumeCard: View {
                 .cornerRadius(23)
             
             VStack {
-                // Perfume Image
-                Image(perfume.imageName)
+                // ✅ Fixed Image for Perfume
+                Image("Aromic")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 100, height: 120)
-                
+                    .frame(width: 130, height: 150)
+
                 // Perfume Name
                 Text(perfume.name)
                     .font(.custom("SF Pro Display", size: 16))
@@ -130,7 +139,6 @@ struct FavoritePerfumeCard: View {
         .frame(width: 170, height: 250)
     }
 }
-
 
 
 #Preview {

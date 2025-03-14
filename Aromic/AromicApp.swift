@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct AromicApp: App {
+
     var body: some Scene {
         WindowGroup {
-            FavoritesView()
+            LaunchView()
+
         }
     }
 }
